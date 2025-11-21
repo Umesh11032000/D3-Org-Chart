@@ -1,7 +1,5 @@
 import { useEffect, useRef, useMemo } from "react";
 import { OrgChart } from "d3-org-chart";
-import { renderToString } from "react-dom/server";
-import { OrgNodeCard } from "./OrgNodeCard";
 
 interface NodeData {
   id: number;
@@ -186,18 +184,22 @@ export default function App() {
       .compactMarginBetween(() => 35)
       .compactMarginPair(() => 30)
       .neighbourMargin(() => 20)
-      .nodeContent(function (d) {
+      .nodeContent(function (d, _i, _arr, _state) {
+        const color = "#FFFFFF";
+        const imageDiffVert = 25 + 2;
         const node = d as unknown as ExtendedNode;
-        return renderToString(
-          <OrgNodeCard
-            width={node.width}
-            height={node.height}
-            id={node.data.id}
-            name={node.data.name}
-            avatar={node.data.avatar}
-            position={node.data.position}
-          />
-        );
+
+        return `
+          <div style='width:${node.width}px;height:${node.height}px;padding-top:${imageDiffVert - 2}px;padding-left:1px;padding-right:1px'>
+            <div style="font-family: 'Inter', sans-serif;background-color:${color};  margin-left:-1px;width:${node.width - 2}px;height:${node.height - imageDiffVert}px;border-radius:10px;border: 1px solid #E4E2E9">
+              <div style="display:flex;justify-content:flex-end;margin-top:5px;margin-right:8px">#${node.data.id}</div>
+              <div style="background-color:${color};margin-top:${-imageDiffVert - 20}px;margin-left:${15}px;border-radius:100px;width:50px;height:50px;" ></div>
+              <div style="margin-top:${-imageDiffVert - 20}px;">   <img src="${node.data.avatar}" style="margin-left:${20}px;border-radius:100px;width:40px;height:40px;" /></div>
+              <div style="font-size:15px;color:#08011E;margin-left:20px;margin-top:10px">  ${node.data.name} </div>
+              <div style="color:#716E7B;margin-left:20px;margin-top:3px;font-size:10px;"> ${node.data.position} </div>
+            </div>
+          </div>
+        `;
       });
     chart.render();
   }, [dataMemo]);
