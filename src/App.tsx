@@ -1,7 +1,21 @@
 import { useEffect, useRef, useMemo } from "react";
 import { OrgChart } from "d3-org-chart";
 import { renderToString } from "react-dom/server";
-import { NodeCard } from "./NodeCard";
+import { OrgNodeCard } from "./OrgNodeCard";
+
+interface NodeData {
+  id: number;
+  parentId: number | null;
+  name: string;
+  avatar: string;
+  position: string;
+}
+
+interface ExtendedNode {
+  width: number;
+  height: number;
+  data: NodeData;
+}
 
 export default function App() {
   const chartRef = useRef<HTMLDivElement | null>(null);
@@ -163,24 +177,28 @@ export default function App() {
     if (!chartRef.current) return;
 
     const chart = new OrgChart()
+      // @ts-expect-error - d3-org-chart accepts HTMLElement but types expect string
       .container(chartRef.current)
       .data(dataMemo)
-      .nodeWidth(() => 250)
-      .nodeHeight(() => 175)
-      .childrenMargin(() => 45)
-      .siblingsMargin(() => 35)
-      .compactMarginBetween(() => 40)
-      .compactMarginPair(() => 50)
-      .nodeContent((d: any) =>
-        renderToString(
-          <NodeCard
-            name={d.data.name}
-            avatar={d.data.avatar}
-            position={d.data.position}
+      .nodeHeight(() => 85 + 25)
+      .nodeWidth(() => 220 + 2)
+      .childrenMargin(() => 50)
+      .compactMarginBetween(() => 35)
+      .compactMarginPair(() => 30)
+      .neighbourMargin(() => 20)
+      .nodeContent(function (d) {
+        const node = d as unknown as ExtendedNode;
+        return renderToString(
+          <OrgNodeCard
+            width={node.width}
+            height={node.height}
+            id={node.data.id}
+            name={node.data.name}
+            avatar={node.data.avatar}
+            position={node.data.position}
           />
-        )
-      );
-
+        );
+      });
     chart.render();
   }, [dataMemo]);
 
